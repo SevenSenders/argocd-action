@@ -42,7 +42,7 @@ def create_preview_environment(app_name, env_name):
         ],
         capture_output=True
     )
-    print("Failed to get configuration of" + app_name + "!")
+    print("Failed to get configuration of " + app_name + "!")
 
     try:
         dev_config = yaml.safe_load(dev_config)
@@ -121,14 +121,14 @@ if __name__ == '__main__':
         os.getenv('SERVICE_NAME')
     ])
     login_to_argocd(os.getenv('ARGOCD_PASSWORD'), os.getenv('ARGOCD_USER'), os.getenv('ARGOCD_HOST'))
-    deployment_type = os.getenv('DEPLOYMENT_TYPE')
-    if deployment_type == 'preview' and env == 'dev':
-        create_preview_environment(app_name, env_name)
-    elif deployment_type == 'destroy' and env == 'dev':
-        destroy_preview_environment(app_name, env_name)
-    elif deployment_type == 'clean' and env == 'dev':
-        destroy_preview_environments(app_name)
-    else:
-        print(f'DEPLOYMENT_TYPE {deployment_type} should be one of "promote", "preview", "destroy" or "clean".')
+    # deployment_type = os.getenv('DEPLOYMENT_TYPE')
+    # if deployment_type == 'preview' and env == 'dev':
+    #     create_preview_environment(app_name, env_name)
+    # elif deployment_type == 'destroy' and env == 'dev':
+    #     destroy_preview_environment(app_name, env_name)
+    # elif deployment_type == 'clean' and env == 'dev':
+    #     destroy_preview_environments(app_name)
+    # else:
+    #     print(f'DEPLOYMENT_TYPE {deployment_type} should be one of "promote", "preview", "destroy" or "clean".')
 
 
