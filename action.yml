@@ -1,5 +1,11 @@
 name: 'ArgoCD Action'
-description: 'ArgoCD Action for the features environment'
+description: 'ArgoCD Action for the features environment.'
+inputs:
+  args:
+    description: ''
+    required: false
 runs:
   using: 'docker'
   image: 'Dockerfile'
+  args:
+    - ${{ inputs.args }}
