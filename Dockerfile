@@ -8,5 +8,4 @@ RUN pip3 install pyyaml
 
 COPY argocd-action.py /argocd-action.py
 
-CMD [ "python", "argocd-action.py" ]
-#CMD [ "bash" ]
+ENTRYPOINT [ "python" , "argocd-action.py"]
