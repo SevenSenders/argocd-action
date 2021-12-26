@@ -6,10 +6,10 @@ import yaml
 import subprocess
 
 
-def login_to_argocd(argocd_password, argocd_user, argocd_grpc_host):
+def login_to_argocd(argocd_password, argocd_user, argocd_host):
     result = subprocess.run(
         [
-            'argocd', 'login', argocd_grpc_host,
+            'argocd', 'login', argocd_host,
             '--grpc-web',
             '--username', argocd_user,
             '--password', argocd_password,
@@ -120,7 +120,7 @@ if __name__ == '__main__':
         env,
         os.getenv('SERVICE_NAME')
     ])
-    login_to_argocd(os.getenv('ARGOCD_PASSWORD'), os.getenv('ARGOCD_USER'), os.getenv('ARGOCD_GRPC_HOST'))
+    login_to_argocd(os.getenv('ARGOCD_PASSWORD'), os.getenv('ARGOCD_USER'), os.getenv('ARGOCD_HOST'))
     deployment_type = os.getenv('DEPLOYMENT_TYPE')
     if deployment_type == 'preview' and env == 'dev':
         create_preview_environment(app_name, env_name)
