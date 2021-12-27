@@ -19,10 +19,15 @@
   "license": "Apache-2.0",
   "author": "SevenSenders TEAM",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "prepare": "ncc build index.js -o dist --source-map"
+  },
   "dependencies": {
     "string-argv": "^0.3.1",
     "child_process": "^1.0.2",
     "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.31.1"
   }
 }
