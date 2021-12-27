@@ -1,0 +1,28 @@
+{
+  "name": "argo-cd-action",
+  "version": "0.0.1",
+  "private": true,
+  "description": "GitHub action for features env",
+  "keywords": [
+    "github",
+    "actions",
+    "argo-cd"
+  ],
+  "homepage": "https://github.com/SevenSenders/argocd-action#readme",
+  "bugs": {
+    "url": "https://github.com/SevenSenders/argocd-action/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SevenSenders/argocd-action.git"
+  },
+  "license": "Apache-2.0",
+  "author": "SevenSenders TEAM",
+  "main": "index.js",
+  "scripts": {},
+  "dependencies": {
+    "string-argv": "^0.3.1",
+    "child_process": "^1.0.2",
+    "js-yaml": "^4.1.0"
+  }
+}
