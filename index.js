@@ -3,15 +3,15 @@ const yaml = require('js-yaml');
 
 
 function login_to_argocd() {
-    const command = 'argocd login ' + process.env.ARGOCD_HOST + ' --grpc-web --username ' + process.env.ARGOCD_USER + ' --password "' + process.env.ARGOCD_PASSWORD + '"'
-    const exec = require('child_process');
-    exec.exec( command, function (err, stdout, stderr) {
-        if (err) {
-            console.log("\n" + stderr);
-        } else {
-            console.log(stdout);
-        }
-    });
+    try {
+        const command = 'argocd login ' + process.env.ARGOCD_HOST +
+            ' --grpc-web --username ' + process.env.ARGOCD_USER +
+            ' --password "' + process.env.ARGOCD_PASSWORD + '"'
+        const exec = require('child_process');
+        exec.execSync(command, {stdio: 'inherit'});
+    } catch (error) {
+        // console.log(`Status Code: ${error.status} with '${error.message}'`);
+    }
 }
 
 function clean_environment_name(name) {
@@ -106,13 +106,13 @@ const branch = process.env.GITHUB_REF_NAME
 const env_name = clean_environment_name(branch)
 const app_name = [ process.env.TEAM, env, process.env.SERVICE_NAME ].join('-')
 login_to_argocd();
-deployment_type = process.env.DEPLOYMENT_TYPE
-if (deployment_type === 'preview' & env === 'dev') {
-    create_preview_environment(app_name, env_name)
-} else if (deployment_type === 'destroy' & env === 'dev') {
-    destroy_preview_environment(app_name, env_name)
-} else if (deployment_type === 'clean' & env === 'dev') {
-    destroy_preview_environments(app_name)
-} else {
-    console.log('DEPLOYMENT_TYPE ' + deployment_type + ' should be one of "promote", "preview", "destroy" or "clean".')
-}
+// deployment_type = process.env.DEPLOYMENT_TYPE
+// if (deployment_type === 'preview' & env === 'dev') {
+//     create_preview_environment(app_name, env_name)
+// } else if (deployment_type === 'destroy' & env === 'dev') {
+//     destroy_preview_environment(app_name, env_name)
+// } else if (deployment_type === 'clean' & env === 'dev') {
+//     destroy_preview_environments(app_name)
+// } else {
+//     console.log('DEPLOYMENT_TYPE ' + deployment_type + ' should be one of "promote", "preview", "destroy" or "clean".')
+// }
