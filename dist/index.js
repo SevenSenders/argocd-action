@@ -4273,39 +4273,39 @@ function create_preview_environment(app_name, env_name) {
         console.log(preview_app_name + " was deployed.");
     } catch (error) {
         console.log(preview_app_name + " will be created.");
-    }
-    try {
-        const get_config = 'argocd app get ' + app_name + ' -o yaml'
-        const dev_config = execSync(get_config);
         try {
-            const config = yaml.load(dev_config);
-            const create_command = 'argocd app create ' +
-                preview_app_name +
-                ' --project ' + config['spec']['project'] +
-                ' --dest-server ' + config['spec']['destination']['server'] +
-                ' --dest-namespace ' + config['spec']['destination']['namespace'] +
-                ' --repo ' + config['spec']['source']['repoURL'] +
-                ' --path ' + config['spec']['source']['path'] +
-                ' --values values.yaml --values values-dev.yaml' +
-                ' --values-literal-file ' + process.env.DEPLOYMENT_OVERRIDE_VALUES_FILE_NAME +
-                ' --parameter global.pillar=' + config['spec']['source']['helm']['parameters'][0]['value'] +
-                ' --parameter global.serviceName=' + config['spec']['source']['helm']['parameters'][1]['value'] +
-                ' --parameter global.environmentName=' + env_name +
-                ' --parameter global.image.tag=' + process.env.GITHUB_SHA +
-                ' --parameter deployment.fullnameOverride=' + preview_app_name +
-                ' --label original=' + app_name +
-                ' --label branch=' + env_name +
-                ' --label environment=preview --label repository=' + process.env.GITHUB_REPOSITORY.replace('SevenSenders/', '') +
-                ' --sync-policy automated --sync-option Prune=true --sync-option CreateNamespace=false --self-heal --upsert'
-            execSync(create_command)
-            console.log(preview_app_name + " was created!")
+            const get_config = 'argocd app get ' + app_name + ' -o yaml'
+            const dev_config = execSync(get_config);
+            try {
+                const config = yaml.load(dev_config);
+                const create_command = 'argocd app create ' +
+                    preview_app_name +
+                    ' --project ' + config['spec']['project'] +
+                    ' --dest-server ' + config['spec']['destination']['server'] +
+                    ' --dest-namespace ' + config['spec']['destination']['namespace'] +
+                    ' --repo ' + config['spec']['source']['repoURL'] +
+                    ' --path ' + config['spec']['source']['path'] +
+                    ' --values values.yaml --values values-dev.yaml' +
+                    ' --values-literal-file ' + process.env.DEPLOYMENT_OVERRIDE_VALUES_FILE_NAME +
+                    ' --parameter global.pillar=' + config['spec']['source']['helm']['parameters'][0]['value'] +
+                    ' --parameter global.serviceName=' + config['spec']['source']['helm']['parameters'][1]['value'] +
+                    ' --parameter global.environmentName=' + env_name +
+                    ' --parameter global.image.tag=' + process.env.GITHUB_SHA +
+                    ' --parameter deployment.fullnameOverride=' + preview_app_name +
+                    ' --label original=' + app_name +
+                    ' --label branch=' + env_name +
+                    ' --label environment=preview --label repository=' + process.env.GITHUB_REPOSITORY.replace('SevenSenders/', '') +
+                    ' --sync-policy automated --sync-option Prune=true --sync-option CreateNamespace=false --self-heal --upsert'
+                execSync(create_command)
+                console.log(preview_app_name + " was created!")
+            } catch (e) {
+                console.log("Failed to deploy application " + app_name + " to Preview environment: " + env_name + "!")
+                process.exit(1)
+            }
         } catch (e) {
-            console.log("Failed to deploy application " + app_name + " to Preview environment: " + env_name + "!")
+            console.log("Failed to get configuration of " + app_name + "!")
             process.exit(1)
         }
-    } catch (e) {
-        console.log("Failed to get configuration of " + app_name + "!")
-        process.exit(1)
     }
 }
 
