@@ -4222,6 +4222,7 @@ function login_to_argocd() {
             ' --password "' + process.env.ARGOCD_PASSWORD + '"'
         execSync(command, {stdio: 'inherit'});
     } catch (error) {
+        process.exit(1)
     }
 }
 
@@ -4235,6 +4236,41 @@ function create_preview_environment(app_name, env_name) {
     try {
         const check_exists = 'argocd app get ' + preview_app_name
         execSync(check_exists, { stdio: 'ignore' });
+        try {
+            const update_image = 'argocd app set ' + preview_app_name +
+                ' --parameter global.image.tag=' + process.env.GITHUB_SHA
+            execSync(update_image);
+            console.log("The new image: " + process.env.GITHUB_SHA + " was set.");
+        } catch (error) {
+            console.log("The new image: " + process.env.GITHUB_SHA + " wasn't set.");
+            process.exit(1)
+        }
+        try {
+            const wait_operation = 'argocd app wait ' + preview_app_name +
+                ' --operation --health --timeout' + process.env.ARGOCD_WAIT_TIMEOUT
+            execSync(wait_operation);
+            console.log(preview_app_name + " is green.");
+        } catch (error) {
+            console.log(preview_app_name + " is red. Please check the argocd web interface.");
+            process.exit(1)
+        }
+        try {
+            const sync = 'argocd app sync ' + preview_app_name
+            execSync(sync);
+        } catch (error) {
+            console.log(" I can't run the sync command. Please check the argocd web interface.");
+            process.exit(1)
+        }
+        try {
+            const wait_sync = 'argocd app wait ' + preview_app_name +
+                ' --operation --health --timeout' + process.env.ARGOCD_SYNC_WAIT_TIMEOUT
+            execSync(wait_sync);
+            console.log(preview_app_name + " was synced.");
+        } catch (error) {
+            console.log(preview_app_name + " wasn't synced. Please check the argocd web interface.");
+            process.exit(1)
+        }
+        console.log(preview_app_name + " was deployed.");
     } catch (error) {
         console.log(preview_app_name + " will be created.");
     }
@@ -4265,9 +4301,11 @@ function create_preview_environment(app_name, env_name) {
             console.log(preview_app_name + " was created!")
         } catch (e) {
             console.log("Failed to deploy application " + app_name + " to Preview environment: " + env_name + "!")
+            process.exit(1)
         }
     } catch (e) {
         console.log("Failed to get configuration of " + app_name + "!")
+        process.exit(1)
     }
 }
 
@@ -4279,6 +4317,7 @@ function destroy_preview_environment(app_name, env_name) {
         console.log(preview_app_name + " was destroyed!")
     } catch (e) {
         console.log("Failed to destroy application " + preview_app_name + "!")
+        process.exit(1)
     }
 }
 
@@ -4294,10 +4333,12 @@ function destroy_preview_environments(app_name) {
                 console.log(delete_app + " was deleted.")
             } catch (e) {
                 console.log("Failed to delete preview environments: " + delete_app + "!")
+                process.exit(1)
             }
         });
     } catch (e) {
         console.log("Failed to list preview environments for " + app_name + "!")
+        process.exit(1)
     }
 }
 
