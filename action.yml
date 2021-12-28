@@ -4,6 +4,9 @@ inputs:
   target-branch:
     description: 'The branch which will be set as a part of the argocd aplication name.'
     required: true
+  target-commit:
+    description: 'The commit which will be set as a docker image tag.'
+    required: true
 runs:
   using: 'node16'
   main: 'dist/index.js'

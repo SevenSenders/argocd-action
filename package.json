@@ -23,7 +23,6 @@
     "prepare": "ncc build index.js -o dist --source-map"
   },
   "dependencies": {
-    "string-argv": "^0.3.1",
     "child_process": "^1.0.2",
     "js-yaml": "^4.1.0",
     "@actions/core": "^1.6.0"
