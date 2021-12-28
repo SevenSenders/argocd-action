@@ -35,7 +35,7 @@ function create_preview_environment(app_name, env_name) {
         }
         try {
             const wait_operation = 'argocd app wait ' + preview_app_name +
-                ' --operation --health --timeout' + process.env.ARGOCD_WAIT_TIMEOUT
+                ' --operation --health --timeout ' + process.env.ARGOCD_WAIT_TIMEOUT
             execSync(wait_operation);
             console.log(preview_app_name + " is green.");
         } catch (error) {
@@ -51,7 +51,7 @@ function create_preview_environment(app_name, env_name) {
         }
         try {
             const wait_sync = 'argocd app wait ' + preview_app_name +
-                ' --operation --health --timeout' + process.env.ARGOCD_SYNC_WAIT_TIMEOUT
+                ' --operation --health --timeout ' + process.env.ARGOCD_SYNC_WAIT_TIMEOUT
             execSync(wait_sync);
             console.log(preview_app_name + " was synced.");
         } catch (error) {
