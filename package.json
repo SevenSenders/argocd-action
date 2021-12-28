@@ -25,7 +25,8 @@
   "dependencies": {
     "string-argv": "^0.3.1",
     "child_process": "^1.0.2",
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.0",
+    "@actions/core": "^1.6.0"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.31.1"

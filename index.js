@@ -1,6 +1,7 @@
 const { parseArgsStringToArgv } = require('string-argv');
 const yaml = require('js-yaml');
 const { execSync } = require('child_process');
+const core = require('@actions/core');
 
 
 function login_to_argocd() {
@@ -131,7 +132,7 @@ function destroy_preview_environments(app_name) {
 }
 
 const env = process.env.ENVIRONMENT_NAME
-const branch = process.env.GITHUB_REF_NAME
+const branch = core.getInput('target-branch');
 const env_name = clean_environment_name(branch)
 const app_name = [ process.env.TEAM, env, process.env.SERVICE_NAME ].join('-')
 login_to_argocd();
