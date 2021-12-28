@@ -1,8 +1,7 @@
 name: 'ArgoCD Action'
 description: 'ArgoCD Action for the features environment.'
 inputs:
-  args:
-    target-branch:
+  target-branch:
     description: 'The branch which will be set as a part of the argocd aplication name.'
     required: true
 runs:
