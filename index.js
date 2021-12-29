@@ -26,7 +26,8 @@ function create_preview_environment(app_name, env_name, commit_hash) {
         execSync(check_exists, { stdio: 'ignore' });
         try {
             const update_image = 'argocd app set ' + preview_app_name +
-                ' --parameter global.image.tag=' + commit_hash
+                ' --parameter global.image.tag=' + commit_hash +
+                ' --values-literal-file ' + process.env.DEPLOYMENT_OVERRIDE_VALUES_FILE_NAME
             execSync(update_image);
             console.log("The new image: " + commit_hash + " was set.");
         } catch (error) {
@@ -95,6 +96,9 @@ function create_preview_environment(app_name, env_name, commit_hash) {
             process.exit(1);
         }
     }
+    console.log("The ArgoCD link for your application: https://" +
+        process.env.ARGOCD_HOST + "/applications/" + process.env.TEAM + "-" + env_name +
+        "-" + process.env.SERVICE_NAME );
 }
 
 function destroy_preview_environment(app_name, env_name) {
