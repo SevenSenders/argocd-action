@@ -1,6 +1,6 @@
 {
   "name": "argo-cd-action",
-  "version": "0.0.1",
+  "version": "0.1.9",
   "private": true,
   "description": "GitHub action for features env",
   "keywords": [
@@ -25,7 +25,8 @@
   "dependencies": {
     "child_process": "^1.0.2",
     "js-yaml": "^4.1.0",
-    "@actions/core": "^1.6.0"
+    "@actions/core": "^1.6.0",
+    "@aws-sdk/client-ecr": "^3.45.0"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.31.1"

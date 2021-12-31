@@ -1,7 +1,61 @@
 const yaml = require('js-yaml');
 const { execSync } = require('child_process');
 const core = require('@actions/core');
+const { ECRClient, BatchGetImageCommand, PutImageCommand } = require("@aws-sdk/client-ecr");
 
+function get_client() {
+    try {
+        return new ECRClient({ region: process.env.AWS_DEFAULT_REGION });
+    } catch (e) {
+        console.log("Failed to create ECR client.");
+        process.exit(1);
+    }
+}
+
+async function promote_image(env_name, commit_hash) {
+    const client = get_client();
+    const image_name = process.env.DOCKER_REPO;
+    const check_image = new BatchGetImageCommand({
+        repositoryName: image_name,
+        imageIds: [
+            {
+                'imageTag':commit_hash
+            }
+        ]
+    });
+    const current_image = await client.send(check_image);
+    if (current_image.images.length === 0) {
+        console.log("Manifest for " + image_name + " : " + commit_hash
+            + " in not found. You should run manually or wait for finishing the build step in your pipeline.");
+    }
+    const current_manifest = current_image['images'][0]['imageManifest'];
+    const check_previous_image = new BatchGetImageCommand({
+        repositoryName: image_name,
+        imageIds: [
+            {
+                'imageTag': env_name
+            }
+        ]
+    });
+    let previous_manifest;
+    const previous_image = await client.send(check_previous_image);
+    if (previous_image.images.length !== 0) {
+        previous_manifest = previous_image['images'][0]['imageManifest'];
+    } else {
+        previous_manifest = 'NOT FOUND';
+    }
+    if (current_manifest !== previous_manifest) {
+        console.log("Promoting " + image_name + ":latest to " + env_name + " environment.");
+        const put_docker_image = new PutImageCommand({
+            repositoryName: image_name,
+            imageManifest: current_manifest,
+            imageTag: env_name
+        });
+        await client.send(put_docker_image);
+        return true;
+    }
+    return false;
+}
 
 function login_to_argocd() {
     try {
@@ -12,6 +66,45 @@ function login_to_argocd() {
     } catch (error) {
         process.exit(1);
     }
+}
+
+function deploy_to_argocd(app_name, commit_hash) {
+    try {
+        const deploy_app = 'argocd app set ' + app_name +
+            ' --parameter global.image.tag=' + commit_hash
+        execSync(deploy_app);
+        console.log("The new image: " + commit_hash + " was set.");
+    } catch (error) {
+        console.log("Failed to update application " + app_name + "with image " + commit_hash + "!");
+        process.exit(1);
+    }
+    try {
+        const wait_operation = 'argocd app wait ' + app_name +
+            ' --operation --health --timeout ' + process.env.ARGOCD_WAIT_TIMEOUT
+        execSync(wait_operation);
+        console.log(app_name + " is green.");
+    } catch (error) {
+        console.log("Failed to wait for application " + app_name + "change complete.");
+        process.exit(1);
+    }
+    try {
+        const app_sync = 'argocd app sync ' + app_name
+        execSync(app_sync);
+    } catch (error) {
+        console.log("Failed to deploy application " + app_name +
+            " to " + process.env.ENVIRONMENT_NAME + " environment!");
+        process.exit(1);
+    }
+    try {
+        const wait_sync = 'argocd app wait ' + app_name +
+            ' --operation --health --sync --timeout ' + process.env.ARGOCD_SYNC_WAIT_TIMEOUT
+        execSync(wait_sync);
+        console.log(app_name + " was synced.");
+    } catch (error) {
+        console.log("Failed to wait for sync application " + app_name + " change complete.");
+        process.exit(1);
+    }
+    console.log(app_name + " was deployed.");
 }
 
 function clean_environment_name(name) {
@@ -52,7 +145,7 @@ function create_preview_environment(app_name, env_name, commit_hash) {
         }
         try {
             const wait_sync = 'argocd app wait ' + preview_app_name +
-                ' --operation --health --timeout ' + process.env.ARGOCD_SYNC_WAIT_TIMEOUT
+                ' --operation --health --sync --timeout ' + process.env.ARGOCD_SYNC_WAIT_TIMEOUT
             execSync(wait_sync);
             console.log(preview_app_name + " was synced.");
         } catch (error) {
@@ -134,6 +227,17 @@ function destroy_preview_environments(app_name) {
     }
 }
 
+function deployment_promotion(app_name, env, commit_hash) {
+    promote_image(env, commit_hash).then(result => {
+        if (result) {
+            console.log("Deploying application " + app_name + " to" + env + " environment.");
+            console.log("Details at https://" + process.env.ARGOCD_HOST + "/applications/" + app_name + ".");
+            deploy_to_argocd(app_name, commit_hash);
+            console.log("Successfully deployed application " + app_name + " to " + env + " environment!");
+        }
+    }).catch(e => console.log(e))
+}
+
 const env = process.env.ENVIRONMENT_NAME;
 const branch = core.getInput('target-branch');
 const commit_hash = core.getInput('target-commit');
@@ -141,7 +245,9 @@ const env_name = clean_environment_name(branch);
 const app_name = [ process.env.TEAM, env, process.env.SERVICE_NAME ].join('-');
 login_to_argocd();
 deployment_type = process.env.DEPLOYMENT_TYPE;
-if (deployment_type === 'preview' & env === 'dev') {
+if (deployment_type === 'promote') {
+    deployment_promotion(app_name, env, commit_hash);
+} else if (deployment_type === 'preview' & env === 'dev') {
     create_preview_environment(app_name, env_name, commit_hash);
 } else if (deployment_type === 'destroy' & env === 'dev') {
     destroy_preview_environment(app_name, env_name);
