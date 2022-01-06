@@ -53,8 +53,12 @@ async function promote_image(env_name, commit_hash) {
         });
         await client.send(put_docker_image);
         return true;
+    } else {
+        console.log("Promoting is not necessary, the same image exists in ECR.");
+        return true;
     }
     return false;
+
 }
 
 function login_to_argocd() {
@@ -230,7 +234,7 @@ function destroy_preview_environments(app_name) {
 function deployment_promotion(app_name, env, commit_hash) {
     promote_image(env, commit_hash).then(result => {
         if (result) {
-            console.log("Deploying application " + app_name + " to" + env + " environment.");
+            console.log("Deploying application " + app_name + " to " + env + " environment.");
             console.log("Details at https://" + process.env.ARGOCD_HOST + "/applications/" + app_name + ".");
             deploy_to_argocd(app_name, commit_hash);
             console.log("Successfully deployed application " + app_name + " to " + env + " environment!");
