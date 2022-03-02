@@ -113,7 +113,7 @@ function deploy_to_argocd(app_name, commit_hash) {
 
 function clean_environment_name(name) {
     const clean_name = name.replace('feature/', '').replace('hotfix/', '').replace('bugfix/', '');
-    return clean_name.replaceAll(/[^a-zA-Z0-9-]+/g, '').replace(/^-+|-+$/g, '').toLowerCase();
+    return clean_name.slice(0, 8).replaceAll(/[^a-zA-Z0-9-]+/g, '').replace(/^-+|-+$/g, '').replaceAll(/-/g, '').toLowerCase();
 }
 
 function create_preview_environment(app_name, env_name, commit_hash) {
