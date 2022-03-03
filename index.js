@@ -8,7 +8,8 @@ const branch = core.getInput('target-branch');
 const commit_hash = core.getInput('target-commit');
 const env_name = clean_environment_name(branch);
 const app_name = [process.env.TEAM, env, process.env.SERVICE_NAME].join('-');
-const argocd_host = process.env.ARGOCD_HOST ?? 'argocd.infra.aws.sevensenders.com:443';
+const argocd_host = process.env.ARGOCD_HOST ?? 'argocd.infra.aws.7senders.com';
+const argocd_grpc_host = process.env.ARGOCD_GRPC_HOST ?? 'argocd.infra.aws.sevensenders.com:443';
 const argocd_user = process.env.ARGOCD_USER ?? 'bitbucket';
 const argocd_wait_timeout = process.env.ARGOCD_WAIT_TIMEOUT ?? 120;
 const argocd_sync_wait_timeout = process.env.ARGOCD_SYNC_WAIT_TIMEOUT ?? 120;
@@ -16,26 +17,35 @@ const deployment_type = process.env.DEPLOYMENT_TYPE ?? 'promote';
 const deployment_override_file_name = process.env.DEPLOYMENT_OVERRIDE_VALUES_FILE_NAME ?? '';
 const aws_default_region = process.env.AWS_DEFAULT_REGION ?? 'eu-central-1';
 
-try {
-    login_to_argocd();
-    switch (deployment_type) {
-        case 'promote':
-            deployment_promotion();
-            break;
-        case 'preview':
-            create_preview_environment();
-            break;
-        case 'destroy':
-            destroy_preview_environment();
-            break;
-        case 'clean':
-            destroy_preview_environments();
-            break;
-        default:
-            core.setFailed(`DEPLOYMENT_TYPE ${deployment_type} should be one of "promote", "preview", "destroy" or "clean".`);
-    }
-} catch (error) {
-    core.setFailed(error.message)
+
+login_to_argocd()
+    .then(
+        result => {
+            switch (deployment_type) {
+                case 'promote':
+                    deployment_promotion();
+                    break;
+                case 'preview':
+                    create_preview_environment();
+                    break;
+                case 'destroy':
+                    destroy_preview_environment();
+                    break;
+                case 'clean':
+                    destroy_preview_environments();
+                    break;
+                default:
+                    core.setFailed(`DEPLOYMENT_TYPE ${deployment_type} should be one of "promote", "preview", "destroy" or "clean".`);
+            }
+        }
+    ).catch(
+    e =>
+        core.setFailed("Failed to login into ArgoCD")
+);
+
+async function login_to_argocd() {
+    const command = `argocd login ${argocd_grpc_host} --grpc-web --username ${argocd_user} --password "${process.env.ARGOCD_PASSWORD}"`
+    execSync(command, {stdio: 'inherit'});
 }
 
 function get_client() {
@@ -89,15 +99,6 @@ async function promote_image() {
         console.log("Promoting is not necessary, the same image exists in ECR.");
     }
     return true;
-}
-
-function login_to_argocd() {
-    try {
-        const command = `argocd login ${argocd_host} --grpc-web --username ${argocd_user} --password "${process.env.ARGOCD_PASSWORD}"`
-        execSync(command, {stdio: 'inherit'});
-    } catch (error) {
-        core.setFailed("Failed to login into ArgoCD");
-    }
 }
 
 function deploy_to_argocd() {
