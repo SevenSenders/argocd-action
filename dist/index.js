@@ -28340,7 +28340,7 @@ login_to_argocd()
 );
 
 async function login_to_argocd() {
-    const command = `argocd login ${argocd_grpc_host} --grpc-web --username ${argocd_user} --password "${process.env.ARGOCD_PASSWORD}"`
+    const command = `argocd login ${argocd_host} --grpc-web --username ${argocd_user} --password "${process.env.ARGOCD_PASSWORD}"`
     execSync(command, {stdio: 'inherit'});
 }
 
