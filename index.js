@@ -8,19 +8,22 @@ const branch = core.getInput('target-branch');
 const commit_hash = core.getInput('target-commit');
 const env_name = clean_environment_name(branch);
 const app_name = [process.env.TEAM, env, process.env.SERVICE_NAME].join('-');
-const argocd_host = process.env.ARGOCD_HOST ?? 'argocd.infra.aws.7senders.com';
-const argocd_grpc_host = process.env.ARGOCD_GRPC_HOST ?? 'argocd.infra.aws.sevensenders.com:443';
 const argocd_user = process.env.ARGOCD_USER ?? 'bitbucket';
-const argocd_wait_timeout = process.env.ARGOCD_WAIT_TIMEOUT ?? 120;
-const argocd_sync_wait_timeout = process.env.ARGOCD_SYNC_WAIT_TIMEOUT ?? 120;
+const argocd_wait_timeout = process.env.ARGOCD_WAIT_TIMEOUT ?? 300;
+const argocd_sync_wait_timeout = process.env.ARGOCD_SYNC_WAIT_TIMEOUT ?? 300;
 const deployment_type = process.env.DEPLOYMENT_TYPE ?? 'promote';
 const deployment_override_file_name = process.env.DEPLOYMENT_OVERRIDE_VALUES_FILE_NAME ?? '';
 const aws_default_region = process.env.AWS_DEFAULT_REGION ?? 'eu-central-1';
 
+const argocd_servers = {
+    dev: 'argocd-dev.infra.aws.sevensenders.com',
+    prod: 'argocd.infra.aws.sevensenders.com',
+}
+const argocd_host = env === 'prod' ? argocd_servers.prod : argocd_servers.dev;
 
 login_to_argocd()
     .then(
-        result => {
+        _result => {
             switch (deployment_type) {
                 case 'promote':
                     deployment_promotion();
@@ -40,7 +43,7 @@ login_to_argocd()
         }
     ).catch(
     e =>
-        core.setFailed("Failed to login into ArgoCD")
+        core.setFailed(`Failed to login into ArgoCD: ${e.message}`)
 );
 
 async function login_to_argocd() {
@@ -138,7 +141,7 @@ function clean_environment_name(name) {
         .replace('hotfix/', '')
         .replace('bugfix/', '');
     return clean_name.slice(0, 8)
-        .replaceAll(/[^a-zA-Z0-9-]+/g, '')
+        .replaceAll(/[^a-zA-Z\d-]+/g, '')
         .replace(/^-+/g, '')
         .replace(/-+$/g, '')
         .replaceAll(/-/g, '')
