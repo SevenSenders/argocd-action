@@ -28357,7 +28357,7 @@ function get_client() {
 
 async function promote_image() {
     const client = get_client();
-    const image_name = process.env.DOCKER_REPO;
+    const image_name = process.env.DOCKER_REPO ?? process.env.IMAGE_NAME;
     const check_image = new BatchGetImageCommand({
         repositoryName: image_name,
         imageIds: [
