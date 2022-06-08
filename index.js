@@ -260,8 +260,8 @@ function deployment_promotion() {
         .then(
             result => {
                 if (result) {
-                    core.info(`Deploying application ${app_name} to ${env} environment.`);
-                    core.info(`Details at https://${argocd_host}/applications/${app_name}.`);
+                    core.info(`Deploying application ${app_name} to ${env} environment`);
+                    core.info(`Details at https://${argocd_host}/applications/${app_name}`);
                     deploy_to_argocd();
                     core.info(`Successfully deployed application ${app_name} to ${env} environment!`);
                 }
