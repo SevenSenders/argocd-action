@@ -28368,7 +28368,7 @@ async function promote_image() {
     });
     const current_image = await client.send(check_image);
     if (current_image.images.length === 0) {
-        console.log(`Manifest for ${image_name} : ${commit_hash} in not found. You should run manually or wait for finishing the build step in your pipeline.`);
+        core.info(`Manifest for ${image_name} : ${commit_hash} in not found. You should run manually or wait for finishing the build step in your pipeline.`);
     }
     const current_manifest = current_image['images'][0]['imageManifest'];
     const check_previous_image = new BatchGetImageCommand({
@@ -28387,7 +28387,7 @@ async function promote_image() {
         previous_manifest = 'NOT FOUND';
     }
     if (current_manifest !== previous_manifest) {
-        console.log(`Promoting ${image_name}:latest to ${env_name} environment.`);
+        core.info(`Promoting ${image_name}:latest to ${env_name} environment.`);
         const put_docker_image = new PutImageCommand({
             repositoryName: image_name,
             imageManifest: current_manifest,
@@ -28395,7 +28395,7 @@ async function promote_image() {
         });
         await client.send(put_docker_image);
     } else {
-        console.log("Promoting is not necessary, the same image exists in ECR.");
+        core.info("Promoting is not necessary, the same image exists in ECR.");
     }
     return true;
 }
@@ -28404,14 +28404,14 @@ function deploy_to_argocd() {
     try {
         const deploy_app = `argocd app set ${app_name} --parameter global.image.tag=${commit_hash}`
         execSync(deploy_app);
-        console.log(`The new image: ${commit_hash} was set.`);
+        core.info(`The new image: ${commit_hash} was set.`);
     } catch (error) {
         core.setFailed(`Failed to update application ${app_name} with image ${commit_hash}!`);
     }
     try {
         const wait_operation = `argocd app wait ${app_name} --operation --health --timeout ${argocd_wait_timeout}`
         execSync(wait_operation);
-        console.log(`${app_name} is green.`);
+        core.info(`${app_name} is green.`);
     } catch (error) {
         core.setFailed(`Failed to wait for application ${app_name} change complete.`);
     }
@@ -28424,11 +28424,11 @@ function deploy_to_argocd() {
     try {
         const wait_sync = `argocd app wait ${app_name} --operation --health --sync --timeout ${argocd_sync_wait_timeout}`
         execSync(wait_sync);
-        console.log(`${app_name} was synced.`);
+        core.info(`${app_name} was synced.`);
     } catch (error) {
         core.setFailed(`Failed to wait for sync application ${app_name} change complete.`);
     }
-    console.log(`${app_name} was deployed.`);
+    core.info(`${app_name} was deployed.`);
 }
 
 function clean_environment_name(name) {
@@ -28452,14 +28452,14 @@ function create_preview_environment() {
         try {
             const update_image = `argocd app set ${preview_app_name} --parameter global.image.tag=${commit_hash} --values-literal-file ${deployment_override_file_name}`
             execSync(update_image);
-            console.log(`The new image: ${commit_hash} was set.`);
+            core.info(`The new image: ${commit_hash} was set.`);
         } catch (error) {
             core.setFailed(`The new image: ${commit_hash} wasn't set.`);
         }
         try {
             const wait_operation = `argocd app wait ${preview_app_name} --operation --health --timeout ${argocd_wait_timeout}`
             execSync(wait_operation);
-            console.log(`${preview_app_name} is green.`);
+            core.info(`${preview_app_name} is green.`);
         } catch (error) {
             core.setFailed(`${preview_app_name} is red. Please check the argocd web interface.`);
         }
@@ -28472,13 +28472,13 @@ function create_preview_environment() {
         try {
             const wait_sync = `argocd app wait ${preview_app_name} --operation --health --sync --timeout ${argocd_sync_wait_timeout}`
             execSync(wait_sync);
-            console.log(`${preview_app_name} was synced.`);
+            core.info(`${preview_app_name} was synced.`);
         } catch (error) {
             core.setFailed(`${preview_app_name} wasn't synced. Please check the argocd web interface.`);
         }
-        console.log(`${preview_app_name} was deployed.`);
+        core.info(`${preview_app_name} was deployed.`);
     } catch (error) {
-        console.log(`${preview_app_name} will be created.`);
+        core.info(`${preview_app_name} will be created.`);
         try {
             const get_config = `argocd app get ${app_name} -o yaml`;
             const dev_config = execSync(get_config);
@@ -28509,7 +28509,7 @@ function create_preview_environment() {
                         --upsert
                         `;
                 execSync(create_command);
-                console.log(`${preview_app_name} was created!`);
+                core.info(`${preview_app_name} was created!`);
             } catch (e) {
                 core.setFailed(`Failed to deploy application ${app_name} to Preview environment: ${env_name}!`);
             }
@@ -28517,7 +28517,7 @@ function create_preview_environment() {
             core.setFailed(`Failed to get configuration of ${app_name}!`);
         }
     }
-    console.log(`The ArgoCD link for your application: https://${argocd_host}/applications/${process.env.TEAM}-${env_name}-${process.env.SERVICE_NAME}`);
+    core.info(`The ArgoCD link for your application: https://${argocd_host}/applications/${process.env.TEAM}-${env_name}-${process.env.SERVICE_NAME}`);
 }
 
 function destroy_preview_environment() {
@@ -28525,7 +28525,7 @@ function destroy_preview_environment() {
     try {
         const delete_command = `argocd app delete ${preview_app_name}`
         execSync(delete_command);
-        console.log(`${preview_app_name} was destroyed!`);
+        core.info(`${preview_app_name} was destroyed!`);
     } catch (e) {
         core.setFailed(`Failed to destroy application ${preview_app_name}!`);
     }
@@ -28541,7 +28541,7 @@ function destroy_preview_environments() {
             try {
                 delete_app = `argocd app delete ${app}`
                 execSync(delete_app);
-                console.log(`${delete_app} was deleted.`);
+                core.warning(`${delete_app} was deleted.`);
             } catch (e) {
                 core.setFailed(`Failed to delete preview environments: ${delete_app}!`);
             }
@@ -28556,10 +28556,10 @@ function deployment_promotion() {
         .then(
             result => {
                 if (result) {
-                    console.log(`Deploying application ${app_name} to ${env} environment.`);
-                    console.log(`Details at https://${argocd_host}/applications/${app_name}.`);
+                    core.info(`Deploying application ${app_name} to ${env} environment.`);
+                    core.info(`Details at https://${argocd_host}/applications/${app_name}.`);
                     deploy_to_argocd();
-                    console.log(`Successfully deployed application ${app_name} to ${env} environment!`);
+                    core.info(`Successfully deployed application ${app_name} to ${env} environment!`);
                 }
             }
         )
