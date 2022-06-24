@@ -12,6 +12,7 @@ const argocd_user = process.env.ARGOCD_USER ?? 'bitbucket';
 const argocd_wait_timeout = process.env.ARGOCD_WAIT_TIMEOUT ?? 300;
 const argocd_sync_wait_timeout = process.env.ARGOCD_SYNC_WAIT_TIMEOUT ?? 300;
 const deployment_type = process.env.DEPLOYMENT_TYPE ?? 'promote';
+const deploy_proccess = process.env.DEPLOY_PROCCESS ?? 'general';
 const deployment_override_file_name = process.env.DEPLOYMENT_OVERRIDE_VALUES_FILE_NAME ?? '';
 const aws_default_region = process.env.AWS_DEFAULT_REGION ?? 'eu-central-1';
 
@@ -126,6 +127,7 @@ function deploy_to_argocd() {
         core.setFailed(`Failed to deploy application ${app_name} to ${env} environment!`);
     }
     try {
+
         const wait_sync = `argocd app wait ${app_name} --operation --health --sync --timeout ${argocd_sync_wait_timeout}`
         execSync(wait_sync);
         core.info(`${app_name} was synced.`);
@@ -174,7 +176,11 @@ function create_preview_environment() {
             core.setFailed("I can't run the sync command. Please check the argocd web interface.");
         }
         try {
-            const wait_sync = `argocd app wait ${preview_app_name} --operation --health --sync --timeout ${argocd_sync_wait_timeout}`
+            if (deploy_proccess === 'general') {
+                const wait_sync = `argocd app wait ${preview_app_name} --operation --health --sync --timeout ${argocd_sync_wait_timeout}`
+            } else {
+                const wait_sync = `argocd app wait ${preview_app_name} --operation --suspended --sync --timeout ${argocd_sync_wait_timeout}`
+            }
             execSync(wait_sync);
             core.info(`${preview_app_name} was synced.`);
         } catch (error) {
