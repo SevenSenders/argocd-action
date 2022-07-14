@@ -28376,7 +28376,7 @@ async function promote_image() {
         repositoryName: image_name,
         imageIds: [
             {
-                'imageTag': env_name
+                'imageTag': env
             }
         ]
     });
@@ -28388,11 +28388,11 @@ async function promote_image() {
         previous_manifest = 'NOT FOUND';
     }
     if (current_manifest !== previous_manifest) {
-        core.info(`Promoting ${image_name}:latest to ${env_name} environment.`);
+        core.info(`Promoting ${image_name}:latest to ${env} environment.`);
         const put_docker_image = new PutImageCommand({
             repositoryName: image_name,
             imageManifest: current_manifest,
-            imageTag: env_name
+            imageTag: env
         });
         await client.send(put_docker_image);
     } else {
