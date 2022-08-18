@@ -141,7 +141,8 @@ function clean_environment_name(name) {
     const clean_name = name
         .replace('feature/', '')
         .replace('hotfix/', '')
-        .replace('bugfix/', '');
+        .replace('bugfix/', '')
+        .replace('-', '');
     return clean_name.slice(0, 8)
         .replaceAll(/[^a-zA-Z\d-]+/g, '')
         .replace(/^-+/g, '')
