@@ -6,7 +6,7 @@ const {ECRClient, BatchGetImageCommand, PutImageCommand} = require("@aws-sdk/cli
 const env = process.env.ENVIRONMENT_NAME;
 const branch = core.getInput('target-branch');
 const commit_hash = core.getInput('target-commit');
-const env_name = clean_environment_name(branch);
+const env_name = get_preview_env_name_from_branch(branch);
 const app_name = [process.env.TEAM, env, process.env.SERVICE_NAME].join('-');
 const argocd_user = process.env.ARGOCD_USER ?? 'bitbucket';
 const argocd_wait_timeout = process.env.ARGOCD_WAIT_TIMEOUT ?? 300;
@@ -275,3 +275,24 @@ function deployment_promotion() {
                 core.setFailed(e.message)
         );
 }
+
+function get_preview_env_name_from_branch(branch) {
+    const parsed_ticket = try_to_parse_branch_with_ticket_prefix(branch);
+
+    return parsed_ticket ? `${parsed_ticket.projectKey}${parsed_ticket.ticketId}` : clean_environment_name(branch);
+}
+
+// parses branch names like cpf-123-some-feature
+function try_to_parse_branch_with_ticket_prefix(branch) {
+    const match = branch.match(/^([a-zA-Z]{3})-(\d+)-/);
+
+    if (!match) {
+        return null;
+    }
+
+    return {
+        projectKey: match[1].toLowerCase(),
+        ticketId: match[2],
+    }
+}
+
