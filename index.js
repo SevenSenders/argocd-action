@@ -17,7 +17,7 @@ const deployment_override_file_name = process.env.DEPLOYMENT_OVERRIDE_VALUES_FIL
 const aws_default_region = process.env.AWS_DEFAULT_REGION ?? 'eu-central-1';
 
 const argocd_servers = {
-    dev: ' ',
+    dev: 'argocd-dev.infra.aws.7senders.com',
     prod: 'argocd.infra.aws.7senders.com',
 }
 const argocd_host = env === 'prod' ? argocd_servers.prod : argocd_servers.dev;
