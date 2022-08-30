@@ -117,6 +117,7 @@ function deploy_to_argocd() {
         execSync(deploy_app);
         core.info(`The new image: ${commit_hash} was set.`);
     } catch (error) {
+        core.info(error)
         core.setFailed(`Failed to update application ${app_name} with image ${commit_hash}!`);
     }
     try {
