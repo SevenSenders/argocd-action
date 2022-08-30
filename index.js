@@ -17,7 +17,7 @@ const deployment_override_file_name = process.env.DEPLOYMENT_OVERRIDE_VALUES_FIL
 const aws_default_region = process.env.AWS_DEFAULT_REGION ?? 'eu-central-1';
 
 const argocd_servers = {
-    dev: 'argocd-dev.infra.aws.7senders.com',
+    dev: ' ',
     prod: 'argocd.infra.aws.7senders.com',
 }
 const argocd_host = env === 'prod' ? argocd_servers.prod : argocd_servers.dev;
@@ -107,7 +107,11 @@ async function promote_image() {
 
 function deploy_to_argocd() {
     try {
-        const deploy_app = `argocd app set ${app_name} --parameter global.image.tag=${commit_hash}`
+        if (process.env.SERVICE_NAME == "airflow") {
+            const deploy_app = `argocd app set ${app_name} --parameter airflow.airflow.image.tag=${commit_hash}`
+        } else {
+            const deploy_app = `argocd app set ${app_name} --parameter global.image.tag=${commit_hash}`
+        }
         execSync(deploy_app);
         core.info(`The new image: ${commit_hash} was set.`);
     } catch (error) {
