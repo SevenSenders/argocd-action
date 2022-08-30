@@ -28404,6 +28404,7 @@ async function promote_image() {
 function deploy_to_argocd() {
     try {
         if (process.env.SERVICE_NAME == "airflow") {
+            core.info("setting new image for airflow...")
             // this is exceptional case for airflow deployments as it is using custom helm chart, rather than "deployment" chart
             const deploy_app = `argocd app set ${app_name} --parameter airflow.airflow.image.tag=${commit_hash}`
         } else {
