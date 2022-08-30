@@ -113,7 +113,6 @@ function deploy_to_argocd() {
             // this is exceptional case for airflow deployments as it is using custom helm chart, rather than "deployment" chart
             deploy_app = `argocd app set ${app_name} --parameter airflow.airflow.image.tag=${commit_hash}`
         }
-        core.info(deploy_app);
         execSync(deploy_app);
         core.info(`The new image: ${commit_hash} was set.`);
     } catch (error) {
