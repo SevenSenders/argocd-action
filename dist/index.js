@@ -28311,6 +28311,7 @@ const deployment_type = process.env.DEPLOYMENT_TYPE ?? 'promote';
 const wait_arguments = process.env.WAIT_ARGUMENTS ?? '--operation --health --sync';
 const deployment_override_file_name = process.env.DEPLOYMENT_OVERRIDE_VALUES_FILE_NAME ?? '';
 const aws_default_region = process.env.AWS_DEFAULT_REGION ?? 'eu-central-1';
+const http_retry_max = process.env.HTTP_RETRY_MAX ?? 1;
 
 const argocd_servers = {
     dev: 'argocd-dev.infra.aws.7senders.com',
@@ -28403,11 +28404,11 @@ async function promote_image() {
 
 function deploy_to_argocd() {
     try {
-        let deploy_app = `argocd app set ${app_name} --parameter global.image.tag=${commit_hash}`
+        let deploy_app = `argocd app set ${app_name} --parameter global.image.tag=${commit_hash} --http-retry-max ${http_retry_max}`
         if (process.env.SERVICE_NAME == "airflow") {
             core.info("setting new image for airflow...")
             // this is exceptional case for airflow deployments as it is using custom helm chart, rather than "deployment" chart
-            deploy_app = `argocd app set ${app_name} --parameter airflow.airflow.image.tag=${commit_hash}`
+            deploy_app = `argocd app set ${app_name} --parameter airflow.airflow.image.tag=${commit_hash} --http-retry-max ${http_retry_max}`
         }
         execSync(deploy_app);
         core.info(`The new image: ${commit_hash} was set.`);
