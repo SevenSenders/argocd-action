@@ -40,3 +40,16 @@ _(*) = required variable._
 ## Example usage
 
 uses: SevenSenders/argocd-action@v0.1.0
+
+## Development
+
+1. Make your changes to `index.js`
+2. Run following commands:
+
+```shell
+npm run prepare
+git add .
+git commit -am "release v0.3.7"
+git tag -a -m "release v0.3.7" v0.3.7
+git push --follow-tags
+```
