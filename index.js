@@ -211,6 +211,9 @@ function create_preview_environment() {
                         --parameter global.serviceName=${config['spec']['source']['helm']['parameters'][1]['value']} \
                         --parameter global.environmentName=${env_name} \
                         --parameter global.image.tag=${commit_hash} \
+                        --parameter global.image.tag=${commit_hash} \
+                        --parameter global.team=${process.env.TEAM} \
+                        --parameter global.costBucket=${process.env.TEAM} \
                         --parameter deployment.fullnameOverride=${preview_app_name} \
                         --label original=${app_name} \
                         --label branch=${env_name} \
